@@ -1,0 +1,19 @@
+{
+    "runner": {
+        "input_path": "D:/Creadto/Heritage/Dataset/GAN dataset/aligned",
+        "output_path": "D:/Creadto/Heritage/Dataset/GAN dataset/skin-patch",
+        "labeler": null,
+        "model": null
+    },
+    "labeler": {
+    },
+    "model": {
+        "output_size": [300, 300],
+        "debug": true
+    },
+    "names": {
+        "runner": "torch",
+        "labeler": "SkinPatcher",
+        "model": "SkinPatcher"
+    }
+}
