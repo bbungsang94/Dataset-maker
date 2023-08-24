@@ -1,3 +1,4 @@
+import os
 from abc import ABCMeta, abstractmethod
 from typing import Iterable, Callable
 from tqdm import tqdm
@@ -7,6 +8,11 @@ class Base(metaclass=ABCMeta):
     def __init__(self, input_path: str, output_path: str, labeler: Callable, model: Callable, **kwargs):
         kwargs['input_path'] = input_path
         self.output_path = output_path
+        self.resume = False
+        exists = os.listdir(output_path)
+        if len(exists) > 0:
+            self.resume = True
+
         self._sampler = self._get_sampler(**kwargs)
         self._labeler = labeler
         self._model = model

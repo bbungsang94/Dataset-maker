@@ -34,19 +34,19 @@ class Patcher:
         self.detector = FaceLandMarks()
         self.output_size = tuple(output_size)
         self.debug = debug
-        self.lt = 108
-        self.rb = 336
+        self.lt = 116
+        self.rb = 205
 
     def __call__(self, sample):
-        index, image = sample
-        image = cv2.imread(image, cv2.IMREAD_COLOR)
+        index, image_path = sample
+        image = cv2.imread(image_path, cv2.IMREAD_COLOR)
         image = delighting(image)
         landmarks = self.get_landmarks(copy.deepcopy(image))
         raw, roi = self.cut_roi(image, landmarks)
 
         if self.debug:
-            test = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-            cv2.imwrite(sample[1].replace('aligned', 'debug_delight'), test)
+            # test = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            # cv2.imwrite(sample[1].replace('aligned', 'debug_delight'), test)
             test = cv2.cvtColor(roi, cv2.COLOR_RGB2BGR)
             cv2.imwrite(sample[1].replace('aligned', 'debug_roi'), test)
 
@@ -54,6 +54,7 @@ class Patcher:
             'index': index,
             'input_image': image,
             'input_shape': image.shape,
+            'input_path': image_path,
             'skin': roi,
             'skin_shape': roi.shape
         }

@@ -1,5 +1,6 @@
 import copy
 import os
+import torch
 from runner.base import Base
 from typing import Callable, Iterable
 
@@ -12,7 +13,14 @@ class ImageTorchRunner(Base):
         sampler = []
         input_path = kwargs['input_path']
         files = os.listdir(input_path)
-        for index, image_name in enumerate(files):
+        begin = 0
+        if self.resume:
+            exists = os.listdir(self.output_path)
+            last = torch.load(os.path.join(self.output_path, exists[-1]))
+            begin = files.index(last['input_path'])
+
+        for index in range(begin, len(files)):
+            image_name = files[index]
             tup = (index, os.path.join(input_path, image_name))
             sampler.append(copy.deepcopy(tup))
         return sampler

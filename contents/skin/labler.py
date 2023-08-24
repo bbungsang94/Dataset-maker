@@ -3,11 +3,12 @@ from labeler.torchbase import Base
 
 
 class SkinPatcher(Base):
-    def __call__(self, output_path,
+    def __call__(self, output_path, input_path,
                  index, input_image, input_shape, skin, skin_shape) -> str:
         save_dict = {
             "index": index,
             "image": input_image,
+            "input_path": input_path,
             "input_shape": input_shape,
             "skin_shape": skin_shape,
             "skin": skin
