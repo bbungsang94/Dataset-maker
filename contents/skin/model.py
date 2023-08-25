@@ -4,12 +4,12 @@ Process: De-lighting > 468-landmarks > extracting ROI > !TBD!
 Input: 1024^2 a facial image
 Output: N^2 matrix
 """
-import copy
-from typing import Tuple
-
+import os
 import cv2
+import copy
 import math
 import numpy as np
+from typing import Tuple
 from contents.external.landmarker import FaceLandMarks
 
 
@@ -41,24 +41,33 @@ class Patcher:
         index, image_path = sample
         image = cv2.imread(image_path, cv2.IMREAD_COLOR)
         image = delighting(image)
-        landmarks = self.get_landmarks(copy.deepcopy(image))
-        raw, roi = self.cut_roi(image, landmarks)
+        try:
+            landmarks = self.get_landmarks(copy.deepcopy(image))
+            raw, roi = self.cut_roi(image, landmarks)
 
-        if self.debug:
-            # test = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-            # cv2.imwrite(sample[1].replace('aligned', 'debug_delight'), test)
-            test = cv2.cvtColor(roi, cv2.COLOR_RGB2BGR)
-            cv2.imwrite(sample[1].replace('aligned', 'debug_roi'), test)
+            if self.debug:
+                # test = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+                # cv2.imwrite(sample[1].replace('aligned', 'debug_delight'), test)
+                test = cv2.cvtColor(roi, cv2.COLOR_RGB2BGR)
+                cv2.imwrite(sample[1].replace('aligned', 'debug_roi'), test)
 
-        result = {
-            'index': index,
-            'input_image': image,
-            'input_shape': image.shape,
-            'input_path': image_path,
-            'skin': roi,
-            'skin_shape': roi.shape
-        }
-        return result
+            result = {
+                'index': index,
+                'input_image': image,
+                'input_shape': image.shape,
+                'input_path': image_path,
+                'skin': roi,
+                'skin_shape': roi.shape
+            }
+            return result
+        except Exception as e:
+            print('Exception message: ', e)
+            print('[Info] path: ' + image_path)
+            os.remove(image_path)
+            os.remove(image_path.replace('aligned', 'image'))
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            cv2.imwrite(image_path.replace('aligned', 'bin'), image)
+            return None
 
     def get_landmarks(self, image: np.ndarray) -> np.ndarray:
         img, faces, landmarks = self.detector.findFaceLandmark(image)

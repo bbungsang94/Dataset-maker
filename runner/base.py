@@ -7,9 +7,15 @@ from tqdm import tqdm
 class Base(metaclass=ABCMeta):
     def __init__(self, input_path: str, output_path: str, labeler: Callable, model: Callable, **kwargs):
         kwargs['input_path'] = input_path
+        exists = os.listdir(output_path)
         self.output_path = output_path
         self.resume = False
-        exists = os.listdir(output_path)
+        self.length, self.count = 0, 0
+        self.shuffle = False
+        if 'length' in kwargs:
+            self.length = kwargs['length']
+        if 'shuffle' in kwargs:
+            self.shuffle = True
         if len(exists) > 0:
             self.resume = True
 
@@ -29,8 +35,11 @@ class Base(metaclass=ABCMeta):
         pbar = tqdm(self._sampler, desc="Beginning process", position=0, leave=False)
         for sample in pbar:
             output = self._model(sample)
+            if output is None:
+                continue
             output['output_path'] = self.output_path
             desc = self._labeler(**output)
             if desc:
                 pbar.set_description(desc)
+
         return self._close()

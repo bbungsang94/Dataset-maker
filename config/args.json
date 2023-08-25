@@ -3,7 +3,9 @@
         "input_path": "D:/Creadto/Heritage/Dataset/GAN dataset/aligned",
         "output_path": "D:/Creadto/Heritage/Dataset/GAN dataset/skin-patch",
         "labeler": null,
-        "model": null
+        "model": null,
+        "length": 50000,
+        "shuffle": true
     },
     "labeler": {
     },
