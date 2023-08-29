@@ -10,6 +10,9 @@ import copy
 import math
 import numpy as np
 from typing import Tuple
+
+import torch
+import torchvision.transforms as transforms
 from contents.external.landmarker import FaceLandMarks
 
 
@@ -86,3 +89,27 @@ class Patcher:
         source_roi = image[y_px:y_px + height, x_px:x_px + width]
         resized_roi = cv2.resize(source_roi, dsize=self.output_size, interpolation=cv2.INTER_AREA)
         return source_roi, resized_roi
+
+
+class Editor:
+    def __init__(self, output_size, **kwargs):
+        self.output_size = tuple(output_size)
+
+    def __call__(self, sample):
+        _, sample = sample
+        x = torch.load(sample)
+        image = x['image']
+        skin = x['skin']
+        skin = cv2.resize(skin, dsize=self.output_size, interpolation=cv2.INTER_AREA)
+        image = transforms.ToTensor()(image)
+        skin = transforms.ToTensor()(skin)
+
+        result = {
+            'index': x['index'],
+            'input_image': image,
+            'input_shape': image.shape,
+            'input_path': x['input_path'],
+            'skin': skin,
+            'skin_shape': skin.shape
+        }
+        return result

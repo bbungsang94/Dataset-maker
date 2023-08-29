@@ -1,6 +1,6 @@
 from functools import partial
 from typing import Callable
-from contents.skin.model import Patcher
+from contents.skin.model import Patcher, Editor
 
 
 def get_model_fn(model, **kwargs) -> Callable:
@@ -8,4 +8,5 @@ def get_model_fn(model, **kwargs) -> Callable:
 
 
 REGISTRY = {'SkinPatcher': partial(get_model_fn, model=Patcher),
+            'SkinEditor': partial(get_model_fn, model=Editor)
             }

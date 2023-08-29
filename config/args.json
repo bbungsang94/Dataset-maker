@@ -1,21 +1,21 @@
 {
     "runner": {
-        "input_path": "D:/Creadto/Heritage/Dataset/GAN dataset/aligned",
-        "output_path": "D:/Creadto/Heritage/Dataset/GAN dataset/skin-patch",
+        "input_path": "D:\\Creadto\\Heritage\\Dataset\\Skin-patch dataset\\skin-patch",
+        "output_path": "D:\\Creadto\\Heritage\\Dataset\\Skin-patch dataset\\skin-patch",
         "labeler": null,
         "model": null,
         "length": 50000,
-        "shuffle": true
+        "shuffle": false
     },
     "labeler": {
     },
     "model": {
-        "output_size": [300, 300],
+        "output_size": [256, 256],
         "debug": true
     },
     "names": {
         "runner": "torch",
         "labeler": "SkinPatcher",
-        "model": "SkinPatcher"
+        "model": "SkinEditor"
     }
 }

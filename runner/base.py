@@ -15,9 +15,9 @@ class Base(metaclass=ABCMeta):
         if 'length' in kwargs:
             self.length = kwargs['length']
         if 'shuffle' in kwargs:
-            self.shuffle = True
+            self.shuffle = kwargs['shuffle']
         if len(exists) > 0:
-            self.resume = True
+            self.resume = False
 
         self._sampler = self._get_sampler(**kwargs)
         self._labeler = labeler
