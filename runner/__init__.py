@@ -1,6 +1,6 @@
 from functools import partial
 from runner.base import Base
-from runner.pth import ImageTorchRunner
+from runner.vision import ImageTorchRunner
 
 
 def get_runner_fn(runner, **kwargs) -> Base:

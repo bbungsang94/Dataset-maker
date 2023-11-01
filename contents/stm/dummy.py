@@ -1,8 +1,13 @@
-def note():
-    # 설계필요: length: boundary를 긁으면서 내려가야함
-    # length에만 레벨을 구분하고 좌,우 구분이 없이 수직으로 내려옴 그게아니면 다이렉트로 달릴 것
-    # 유연 circ-h(horizontal) circ-v(vertical)
-    # 명확 height, width, depth
+import os
+import pandas as pd
 
-    # poses: standing, curve, t, sitting
+def make_dataset(root=r"D:\Creadto\Heritage\Dataset\SMPL2Measure\raw", filename="dataset.csv"):
+    full_path = os.path.join(root, filename)
+    file = pd.read_csv(full_path, index_col="Index")
+    dataset = file.dropna(subset=['성별'])
+    dataset = dataset.drop(['BANNED'], axis=1)
+    dataset.to_csv(os.path.join(root, "real_dataset.csv"))
     pass
+
+if __name__ == "__main__":
+    make_dataset()

@@ -6,9 +6,9 @@ import open3d as o3d
 from contents.stm.convention import get_coordinates, get_names
 
 
-def find_indexes(vertices, alters):
+def check_error(vertices, coordinates):
     indexes = []
-    for alter in alters:
+    for alter in coordinates:
         x, z, y = alter
         target = copy.deepcopy(vertices)
         target[:, 0] = abs(target[:, 0] - x)
@@ -40,6 +40,10 @@ if __name__ == "__main__":
     # o3d.visualization.draw_geometries([mesh, coordi])
     standing_coordinates, sitting_coordinates = get_coordinates()
     standing_names, sitting_names = get_names()
+
+    check_error(np.asarray(mesh.vertices), standing_coordinates)
+    check_error(np.asarray(mesh.vertices), sitting_coordinates)
+
     standing_names = make_index_list(np.asarray(mesh.vertices), standing_coordinates, standing_names)
     sitting_names = make_index_list(np.asarray(mesh.vertices), sitting_coordinates, sitting_names)
     import json

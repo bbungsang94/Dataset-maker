@@ -1,13 +1,23 @@
 import copy
+import json
+import os
 import pickle
 from typing import List
 
-import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 
-from contents.stm.utilities import rodrigues, with_zeros, pack, vertex_to_csv
-import open3d as o3d
+from contents.stm.utilities import rodrigues, with_zeros, pack
+
+
+class Maker:
+    def __init__(self, structure_root, data_root):
+        with open(os.path.join(structure_root, "sitting.json"), 'r') as f:
+            self.sitting = json.load(f)
+        with open(os.path.join(structure_root, "standing.json"), 'r') as f:
+            self.standing = json.load(f)
+        data = pd.read_csv(os.path.join(data_root, "dataset.csv"), index_col="Index")
 
 
 class SMPLSet(nn.Module):
@@ -68,17 +78,22 @@ class SMPL(nn.Module):
         r_cube_big = rodrigues(pose.view(-1, 1, 3)).reshape(batch_num, -1, 3, 3)
 
         r_cube = r_cube_big[:, 1:, :, :]
-        i_cube = (torch.eye(3, dtype=torch.float64).unsqueeze(dim=0) + torch.zeros((batch_num, r_cube.shape[1], 3, 3), dtype=torch.float64)).to(self.device)
+        i_cube = (torch.eye(3, dtype=torch.float64).unsqueeze(dim=0) + torch.zeros((batch_num, r_cube.shape[1], 3, 3),
+                                                                                   dtype=torch.float64)).to(self.device)
         lrotmin = (r_cube - i_cube).reshape(batch_num, -1, 1).squeeze(dim=2)
         v_posed = v_shaped + torch.tensordot(lrotmin, self.posedirs, dims=([1], [2]))
 
         results = []
         results.append(with_zeros(torch.cat((r_cube_big[:, 0], torch.reshape(joint[:, 0, :], (-1, 3, 1))), dim=2)))
         for i in range(1, self.kintree_table.shape[1]):
-            results.append(torch.matmul(results[parent[i]], with_zeros(torch.cat((r_cube_big[:, i], torch.reshape(joint[:, i, :] - joint[:, parent[i], :], (-1, 3, 1))), dim=2))))
+            results.append(torch.matmul(results[parent[i]], with_zeros(
+                torch.cat((r_cube_big[:, i], torch.reshape(joint[:, i, :] - joint[:, parent[i], :], (-1, 3, 1))),
+                          dim=2))))
 
         stacked = torch.stack(results, dim=1)
-        results = stacked - pack(torch.matmul(stacked, torch.reshape(torch.cat((joint, torch.zeros((batch_num, 55, 1), dtype=torch.float64).to(self.device)), dim=2), (batch_num, 55, 4, 1))))
+        results = stacked - pack(torch.matmul(stacked, torch.reshape(
+            torch.cat((joint, torch.zeros((batch_num, 55, 1), dtype=torch.float64).to(self.device)), dim=2),
+            (batch_num, 55, 4, 1))))
         # Restart from here
         T = torch.tensordot(results, self.weights, dims=([1], [1])).permute(0, 3, 1, 2)
         rest_shape_h = torch.cat(
@@ -92,22 +107,3 @@ class SMPL(nn.Module):
         # print(self.joint_regressor.shape)
         joints = torch.tensordot(result, self.joint_regressor, dims=([1], [1])).transpose(1, 2)
         return result, joints
-
-
-if __name__ == "__main__":
-    model = SMPLSet('../external/smpl/SMPLX_NEUTRAL.pkl')
-    fcs = model.faces
-    batch_size = 3
-    g = ['male', 'female', 'neutral']
-    b = np.zeros((batch_size, 400))
-    p = np.zeros((batch_size, 165))
-    of = np.zeros((batch_size, 3))
-    re = model(genders=g, beta=torch.from_numpy(b), pose=torch.from_numpy(p), offset=torch.from_numpy(of))
-    for i, v in enumerate(re):
-        v = np.array(v)
-        vertex_to_csv(filename=g[i] + '.csv', vertex=v)
-        mesh = o3d.geometry.TriangleMesh()
-        mesh.triangles = o3d.utility.Vector3iVector(fcs[g[i]])
-        mesh.vertices = o3d.utility.Vector3dVector(v)
-        o3d.io.write_triangle_mesh(filename=g[i] + '.obj', mesh=mesh)
-

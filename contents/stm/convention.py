@@ -106,12 +106,12 @@ def get_coordinates():
         [0.340382, 0.004545, 0.063565],  # 두갈래근점(Biceps, 좌)
     ]
     sitting = [
-        [-0.105341, -0.090454, -0.624696],  # 앉은넙다리위점(Superior Thigh, Sitting, 우)
-        [0.105341, -0.090454, -0.624696],  # 앉은넙다리위점(Superior Thigh, Sitting, 좌)
-        [-0.09652, -0.04576, -0.868488],  # 앉은무릎뼈위점(Superior Patella, Sitting, 우)
-        [0.09652, -0.04576, -0.868488],  # 앉은무릎뼈위점(Superior Patella, Sitting, 좌)
-        [-0.095372, -0.023985, -0.916178],  # 앉은무릎앞점(Anterior Knee, Sitting, 우)
-        [0.095372, -0.023985, -0.916178],  # 앉은무릎앞점(Anterior Knee, Sitting, 좌)
+        [-0.105341, -0.090454, -0.624696],  # 앉은넙다리위점(Superior Thigh, 우)
+        [0.105341, -0.090454, -0.624696],  # 앉은넙다리위점(Superior Thigh, 좌)
+        [-0.09652, -0.04576, -0.868488],  # 앉은무릎뼈위점(Superior Patella, 우)
+        [0.09652, -0.04576, -0.868488],  # 앉은무릎뼈위점(Superior Patella, 좌)
+        [-0.095372, -0.023985, -0.916178],  # 앉은무릎앞점(Anterior Knee, 우)
+        [0.095372, -0.023985, -0.916178],  # 앉은무릎앞점(Anterior Knee, 좌)
         [-0.091315, 0.08765, -0.860128],  # 오금점(Posterior Juncture of Calf and Thigh, 우)
         [0.091315, 0.08765, -0.860128],  # 오금점(Posterior Juncture of Calf and Thigh, 좌)
         [-0.178589, 0.010366, -0.388594],  # 앉은엉덩이최대돌출수준(Hip level, 우)
@@ -234,12 +234,12 @@ def get_names():
         "두갈래근점, Biceps, 좌": -1,
     }
     sitting = {
-        "앉은넙다리위점, Superior Thigh, Sitting, 우": -1,
-        "앉은넙다리위점, Superior Thigh, Sitting, 좌": -1,
-        "앉은무릎뼈위점, Superior Patella, Sitting, 우": -1,
-        "앉은무릎뼈위점, Superior Patella, Sitting, 좌": -1,
-        "앉은무릎앞점, Anterior Knee, Sitting, 우": -1,
-        "앉은무릎앞점, Anterior Knee, Sitting, 좌": -1,
+        "앉은넙다리위점, Superior Thigh, 우": -1,
+        "앉은넙다리위점, Superior Thigh, 좌": -1,
+        "앉은무릎뼈위점, Superior Patella, 우": -1,
+        "앉은무릎뼈위점, Superior Patella, 좌": -1,
+        "앉은무릎앞점, Anterior Knee, 우": -1,
+        "앉은무릎앞점, Anterior Knee, 좌": -1,
         "오금점, Posterior Juncture of Calf and Thigh, 우": -1,
         "오금점, Posterior Juncture of Calf and Thigh, 좌": -1,
         "앉은엉덩이최대돌출수준, Hip level, 우": -1,
@@ -297,10 +297,10 @@ def get_interactions():
         ("넙다리둘레", "Thigh Circumference", ["Midthigh, 우"], "circ-h", "hands-on"),
         ("무릎둘레", "Knee Circumference", ["Midpatella, 우"], "circ-h", "hands-on"),
         ("종아리둘레", "Calf Circumference", ["Calf Protrusion, 우"], "circ-h", "hands-on"),
-        ("목옆뒤허리둘레선길이", "Neck Point to back Waistline", ["Lateral Neck, 우", "Lateral Waist level"], "length", "t"),
+        ("목옆뒤허리둘레선길이", "Neck Point to back Waistline", ["Lateral Neck, 우", "Lateral Waist level, 우"], "length", "t"),
         ("목옆젖꼭지길이", "Neck Shoulder Point to Nipple", ["Lateral Neck, 우", "Nipple, 우"], "length", "t"),
         ("목옆젖꼭지허리둘레선길이", "Neck Point to Breast Point to Waistline",
-         ["Lateral Neck, 우", "Lateral Waist level"], "length", "t"),
+         ["Lateral Neck, 우", "Lateral Waist level, 우"], "length", "t"),
         ("샅앞뒤길이", "Crotch length", ["Anterior Waist", "Crotch", "Posterior Waist"], "length", "t"),
         ("어깨목뒤길이", "Shoulder to neck(half)", ["Cervicale", "Acromion, 좌"], "length", "standing"),
         ("목뒤어깨사이길이", "Shoulder to neck(full)", ["Acromion, 우", "Cervicale", "Acromion, 좌"], "length", "standing"),
