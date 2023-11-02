@@ -5,7 +5,7 @@ import os
 import numpy as np
 import torch
 
-from contents.stm.convention import get_interactions
+from contents.stm.preprocess.convention import get_interactions
 from contents.stm.model import SMPL
 from contents.stm.poses.pose import get_curve, get_t, get_sitdown, get_standing, get_hands_on
 from contents.stm.taylor import Taylor

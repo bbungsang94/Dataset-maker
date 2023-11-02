@@ -6,7 +6,7 @@ import numpy as np
 import open3d as o3d
 import torch
 
-from contents.stm.convention import get_coordinates, get_names, get_circ_coordinates
+from contents.stm.preprocess.convention import get_coordinates, get_names, get_circ_coordinates
 from contents.stm.model import SMPL
 from contents.stm.poses.pose import get_t, get_hands_on, get_sitdown, get_curve, get_standing
 
@@ -65,7 +65,7 @@ def make_index_list(vertices, coordinates, name_dict: dict, error_display=False,
     male = SMPL(os.path.join(root, "SMPLX_MALE.pkl"))
     model = [male, female]
     poses = [get_t, get_hands_on, get_sitdown, get_curve, get_standing]
-    with open(file='./data/mapper.pickle', mode='rb') as f:
+    with open(file='../data/mapper.pickle', mode='rb') as f:
         mapper = pickle.load(f)
 
     for idx, key in enumerate(name_dict.keys()):
@@ -105,7 +105,7 @@ def make_circ_json(vertices, error_display=False, verbose=False):
     male = SMPL(os.path.join(root, "SMPLX_MALE.pkl"))
     model = [male, female]
     poses = [get_t, get_hands_on, get_sitdown, get_curve, get_standing]
-    with open(file='./data/mapper.pickle', mode='rb') as f:
+    with open(file='../data/mapper.pickle', mode='rb') as f:
         mapper = pickle.load(f)
     circ_dict = get_circ_coordinates()
     json_dict = dict()
@@ -154,7 +154,7 @@ def make_circ_json(vertices, error_display=False, verbose=False):
 
 
 if __name__ == "__main__":
-    mesh = o3d.io.read_triangle_mesh(os.path.join(r"D:\Creadto\Utilities\Dataset-maker\contents\stm\poses\sizekorea",
+    mesh = o3d.io.read_triangle_mesh(os.path.join(r"/contents/stm/poses/sizekorea",
                                                   "origin-male.obj"))
     # coordi = o3d.geometry.TriangleMesh.create_coordinate_frame()
     # o3d.visualization.draw_geometries([mesh, coordi])
