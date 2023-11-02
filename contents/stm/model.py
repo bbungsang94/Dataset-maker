@@ -61,15 +61,6 @@ class SMPL(nn.Module):
         self.faces = source['f']
         self.device = torch.device('cpu')
 
-        import open3d as o3d
-        mesh = o3d.geometry.TriangleMesh()
-        mesh.vertices = o3d.utility.Vector3dVector(self.v_template.numpy())
-        mesh.triangles = o3d.utility.Vector3iVector(self.faces)
-        stub = path.split('\\')
-        filename = stub[-1].replace('.pkl', '.obj')
-        o3d.io.write_triangle_mesh(filename, mesh)
-
-
     def to(self, device, *args, **kwargs):
         super(SMPL, self).to(device=device, *args, **kwargs)
         self.device = device

@@ -1,0 +1,24 @@
+{
+    "runner": {
+        "input_path": null,
+        "output_path": "D:\\Creadto\\Heritage\\Dataset\\SMPL-Measure\\parameter",
+        "labeler": null,
+        "model": null,
+        "length": 5000
+    },
+    "labeler": {
+        "smpl_root": "D:\\Creadto\\Utilities\\Dataset-maker\\contents\\external\\smpl",
+        "pin_root": "D:\\Creadto\\Utilities\\Dataset-maker\\contents\\stm\\data",
+        "circ_root": "D:\\Creadto\\Utilities\\Dataset-maker\\contents\\stm\\data"
+    },
+    "model": {
+        "size": 400,
+        "scale": 1,
+        "offset": -0.5
+    },
+    "names": {
+        "runner": "self-loop",
+        "labeler": "SMPLLabeler",
+        "model": "RandomGenerator"
+    }
+}

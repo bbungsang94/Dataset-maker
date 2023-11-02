@@ -13,7 +13,7 @@ from labeler.torchbase import Base
 
 
 class SMPLLabeler(Base):
-    def __init__(self, smpl_root, pin_root):
+    def __init__(self, smpl_root, pin_root, circ_root):
         self.batch_size = 1
         self.count = 0
         male_path = os.path.join(smpl_root, "SMPLX_MALE.pkl")
@@ -26,7 +26,9 @@ class SMPLLabeler(Base):
             standing = json.load(f)
         with open(os.path.join(pin_root, 'sitting.json'), 'r', encoding='UTF-8-sig') as f:
             sitting = json.load(f)
-        self.taylor = Taylor(tape=get_interactions(), pin=(standing, sitting))
+        with open(os.path.join(pin_root, 'circumference.json'), 'r', encoding='UTF-8-sig') as f:
+            circ_dict = json.load(f)
+        self.taylor = Taylor(tape=get_interactions(), pin=(standing, sitting), circ_dict=circ_dict)
 
     def __call__(self, **kwargs):
         shape = kwargs['value']
@@ -43,7 +45,8 @@ class SMPLLabeler(Base):
             models[key] = copy.deepcopy(v)
 
         self.taylor.update(model_dict=models)
-        measure = self.taylor.order(fast=True, visualize=True)
+        measure = self.taylor.order(fast=False, visualize=False)
+        measure = measure / measure.max()
         result = {
             'input': {
                 'gender': gender,

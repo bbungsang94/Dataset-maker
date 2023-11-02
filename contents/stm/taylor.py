@@ -1,9 +1,10 @@
 import numpy as np
 import open3d as o3d
+import torch
 
 
 class Taylor:
-    def __init__(self, tape, pin, model_dict=None):
+    def __init__(self, tape, pin, circ_dict, model_dict=None):
         """
         :param tape: It's interaction list from convention.py. call get_interactions
         :param pin: Vertices index about human parts in 3d mesh model load standing/sitting.json
@@ -12,6 +13,7 @@ class Taylor:
         self.pin = self._convert_tag(pin)
         self.table = np.zeros(len(self.tape))
         self.model = model_dict
+        self.circ_dict = circ_dict
 
     def update(self, model_dict):
         """
@@ -45,7 +47,12 @@ class Taylor:
                 continue
             if "circ" in func:
                 stub = func.split('-')
+                indexes = self.circ_dict[eng]
+                args.clear()
+                for index in indexes:
+                    args.append(self.model[pose][0, index])
                 args.insert(0, stub[-1])
+                func = stub[0]
                       
             value = getattr(self, func)(*args)
             
@@ -91,10 +98,35 @@ class Taylor:
 
     @staticmethod
     def circ(direction, *args):
-        return -1
+        pivot = {
+            'v': 0,
+            'h': 1,
+        }
+        if direction in pivot:
+            fix = args[0][pivot[direction]]
+        else:
+            fix = np.NaN
+
+        length = len(args)
+        result = 0.0
+        for i in range(length):
+            a = args[i]
+            b = args[(i + 1) % length]
+            if direction in pivot:
+                a[pivot[direction]] = fix
+                b[pivot[direction]] = fix
+            result += torch.norm(b - a).item()
+            # 직선거리 계산
+        return result
 
     @staticmethod
     def length(*args):
-        return -1
-
-
+        length = len(args)
+        result = 0.0
+        for i in range(length):
+            a = args[i]
+            if (i + 1) == length:
+                break
+            b = args[i + 1]
+            result += torch.norm(b - a).item()
+        return result

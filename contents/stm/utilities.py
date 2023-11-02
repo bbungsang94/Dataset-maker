@@ -78,3 +78,10 @@ def pack(x):
         (x.shape[0], x.shape[1], 4, 3), dtype=torch.float64).to(x.device)
     ret = torch.cat((zeros43, x), dim=3)
     return ret
+
+
+def dataset_val(root=r"D:\Creadto\Heritage\Dataset\SMPL-Measure\parameter"):
+    import os
+    files = os.listdir(root)
+    for file in files:
+        data = torch.load(file)
