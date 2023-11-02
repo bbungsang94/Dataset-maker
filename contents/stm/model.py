@@ -41,7 +41,7 @@ class SMPLSet(nn.Module):
     def forward(self, genders: List[str], beta: torch.Tensor, pose: torch.Tensor, offset: torch.Tensor):
         batches = []
         for i, gender in enumerate(genders):
-            result, joint = self.model[gender](beta[i].unsqueeze(0), pose[i].unsqueeze(0), offset[i].unsqueeze(0))
+            result, _ = self.model[gender](beta[i].unsqueeze(0), pose[i].unsqueeze(0), offset[i].unsqueeze(0))
             batches.append(copy.deepcopy(result))
         batches = torch.cat(batches)
         return batches
@@ -60,6 +60,15 @@ class SMPL(nn.Module):
         self.kintree_table = source['kintree_table']
         self.faces = source['f']
         self.device = torch.device('cpu')
+
+        import open3d as o3d
+        mesh = o3d.geometry.TriangleMesh()
+        mesh.vertices = o3d.utility.Vector3dVector(self.v_template.numpy())
+        mesh.triangles = o3d.utility.Vector3iVector(self.faces)
+        stub = path.split('\\')
+        filename = stub[-1].replace('.pkl', '.obj')
+        o3d.io.write_triangle_mesh(filename, mesh)
+
 
     def to(self, device, *args, **kwargs):
         super(SMPL, self).to(device=device, *args, **kwargs)

@@ -9,4 +9,5 @@ class RandomGenerator:
         self.offset = offset
 
     def __call__(self, *args):
-        return torch.from_numpy(np.random.rand(1, self.size) * self.scale + self.offset)
+
+        return {'value': torch.from_numpy(np.random.rand(1, self.size) * self.scale + self.offset)}

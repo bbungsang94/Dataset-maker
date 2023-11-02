@@ -23,5 +23,5 @@ def main(config):
 
 
 if __name__ == "__main__":
-    args = read_json(os.path.join('./config', 'args.json'))
-    main(args)
+    args = read_json(os.path.join('./config', 'address.json'))
+    main(read_json(os.path.join('./config', args['address'] + '.json')))
