@@ -26,7 +26,7 @@ class SMPLLabeler(Base):
             standing = json.load(f)
         with open(os.path.join(pin_root, 'sitting.json'), 'r', encoding='UTF-8-sig') as f:
             sitting = json.load(f)
-        with open(os.path.join(pin_root, 'circumference.json'), 'r', encoding='UTF-8-sig') as f:
+        with open(os.path.join(circ_root, 'circumference.json'), 'r', encoding='UTF-8-sig') as f:
             circ_dict = json.load(f)
         self.taylor = Taylor(tape=get_interactions(), pin=(standing, sitting), circ_dict=circ_dict)
 

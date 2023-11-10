@@ -154,8 +154,7 @@ def make_circ_json(vertices, error_display=False, verbose=False):
 
 
 if __name__ == "__main__":
-    mesh = o3d.io.read_triangle_mesh(os.path.join(r"/contents/stm/poses/sizekorea",
-                                                  "origin-male.obj"))
+    mesh = o3d.io.read_triangle_mesh(os.path.join(r"../poses/sizekorea", "origin-male.obj"))
     # coordi = o3d.geometry.TriangleMesh.create_coordinate_frame()
     # o3d.visualization.draw_geometries([mesh, coordi])
     #make_obj_mapper()
