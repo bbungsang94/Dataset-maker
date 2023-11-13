@@ -9,6 +9,12 @@ def vertex_to_csv(vertex: np.ndarray, filename: str):
     dataframe.to_csv(filename, header=False, index=False)
 
 
+def delete_banned_row(path: str):
+    dataframe = pd.read_csv(path, index_col='INDEX', encoding='utf-8-sig')
+    dropped_dataframe = dataframe[dataframe['BANNED'] == False]
+    dataset = dropped_dataframe.drop('BANNED', axis=1)
+    dataset.to_csv('dataset.csv', encoding='utf-8-sig')
+
 def rodrigues(r: Tensor):
     """
     Rodrigues' rotation formula that turns axis-angle tensor into rotation
@@ -33,8 +39,8 @@ def rodrigues(r: Tensor):
         (z_stick, -r_hat[:, 0, 2], r_hat[:, 0, 1], r_hat[:, 0, 2], z_stick,
          -r_hat[:, 0, 0], -r_hat[:, 0, 1], r_hat[:, 0, 0], z_stick), dim=1)
     m = torch.reshape(m, (-1, 3, 3))
-    i_cube = (torch.eye(3, dtype=torch.float64).unsqueeze(dim=0) \
-              + torch.zeros((theta_dim, 3, 3), dtype=torch.float64)).to(r.device)
+    i_cube = (torch.eye(3, dtype=torch.float64).unsqueeze(dim=0) + torch.zeros((theta_dim, 3, 3),
+                                                                               dtype=torch.float64)).to(r.device)
     a = r_hat.permute(0, 2, 1)
     dot = torch.matmul(a, r_hat)
     r = cos * i_cube + (1 - cos) * dot + torch.sin(theta) * m
@@ -78,3 +84,7 @@ def pack(x):
         (x.shape[0], x.shape[1], 4, 3), dtype=torch.float64).to(x.device)
     ret = torch.cat((zeros43, x), dim=3)
     return ret
+
+
+if __name__ == "__main__":
+    real_dataset = delete_banned_row(r"D:\Creadto\Heritage\Dataset\SMPL-Measure\csv\Banned dataset.csv")
