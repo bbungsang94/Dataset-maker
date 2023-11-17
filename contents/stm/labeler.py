@@ -45,7 +45,7 @@ class SMPLLabeler(Base):
             models[key] = copy.deepcopy(v)
 
         self.taylor.update(model_dict=models)
-        measure = self.taylor.order(fast=False, visualize=False)
+        measure = self.taylor.order(gender=[gender], fast=False, visualize=False)
         measure = measure / measure.max()
         result = {
             'input': {
