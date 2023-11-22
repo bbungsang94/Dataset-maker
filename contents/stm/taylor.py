@@ -3,6 +3,7 @@ import copy
 import numpy as np
 import open3d as o3d
 import torch
+from torch_geometric.data import Data, Batch
 
 
 class Taylor:
@@ -23,7 +24,7 @@ class Taylor:
         :return:
         """
         self.model = model_dict
-        self.table = torch.zeros(self.model['t'].shape[0], len(self.tape))
+        self.table = torch.zeros(self.model[list(model_dict.keys())[-1]].shape[0], len(self.tape))
 
     def order(self, gender, fast=False, visualize=False):
         only_female = ["Waist Height natural indentation", "Underbust Circumference"]
@@ -41,13 +42,18 @@ class Taylor:
             # function 인식
             if fast and ("circ" in func or "length" in func):
                 continue
-            if "circ" in func:
-                stub = func.split('-')
+            if "circ" in func or 'length' in func:
                 indexes = self.circ_dict[eng]
                 args.clear()
                 for index in indexes:
                     args.append(self.model[pose][:, index])
-                args.insert(0, stub[-1])
+
+                if '-' in func:
+                    stub = func.split('-')
+                    args.insert(0, stub[-1])
+                else:
+                    stub = [func]
+                    args.insert(0, 'straight')
                 func = stub[0]
 
             value = getattr(self, func)(*args)
@@ -70,6 +76,8 @@ class Taylor:
                     if p != pose:
                         continue
                     if "circ" in func:
+                        indexes = self.circ_dict[eng]
+                    elif "length" in func and eng in self.circ_dict:
                         indexes = self.circ_dict[eng]
                     else:
                         indexes = [self.pin[tag] for tag in tags]
@@ -105,15 +113,12 @@ class Taylor:
         return self.table
 
     def _convert_tag(self, pin):
-        standing, sitting = pin
         tag = dict()
-        for key, value in standing.items():
-            _, eng, direction = self._separate_key(key)
-            tag[eng + direction] = value
+        for dictionary in pin:
+            for key, value in dictionary.items():
+                _, eng, direction = self._separate_key(key)
+                tag[eng + direction] = value
 
-        for key, value in sitting.items():
-            _, eng, direction = self._separate_key(key)
-            tag[eng + direction] = value
         return tag
 
     @staticmethod
@@ -137,8 +142,9 @@ class Taylor:
     def depth(a, b):
         return abs(a[:, 2] - b[:, 2])
 
-    @staticmethod
-    def circ(direction, *args):
+    def circ(self, direction, *args):
+        result = self.length(direction, *args)
+
         pivot = {
             'v': 0,
             'h': 1,
@@ -146,22 +152,28 @@ class Taylor:
         if direction in pivot:
             fix = args[0][:, pivot[direction]]
         else:
-            fix = np.NaN
+            fix = None
 
-        length = len(args)
-        result = torch.zeros(args[0].shape[0])
-        for i in range(length):
-            a = args[i]
-            b = args[(i + 1) % length]
-            if direction in pivot:
+        a = args[-1]
+        b = args[0]
+        if direction in pivot:
+            if fix is not None:
                 a[:, pivot[direction]] = fix
                 b[:, pivot[direction]] = fix
-            result += torch.linalg.vector_norm(b - a, dim=1)
-            # 직선거리 계산
+        result += torch.linalg.vector_norm(b - a, dim=1)
         return result
 
     @staticmethod
-    def length(*args):
+    def length(direction, *args):
+        pivot = {
+            'v': 0,
+            'h': 1,
+        }
+        if direction in pivot:
+            fix = args[0][:, pivot[direction]]
+        else:
+            fix = None
+
         length = len(args)
         result = torch.zeros(args[0].shape[0])
         for i in range(length):
@@ -169,5 +181,98 @@ class Taylor:
             if (i + 1) == length:
                 break
             b = args[i + 1]
+            if direction in pivot:
+                if fix is not None:
+                    a[:, pivot[direction]] = fix
+                    b[:, pivot[direction]] = fix
             result += torch.linalg.vector_norm(b - a, dim=1)
         return result
+
+
+class GraphTaylor(Taylor):
+    def __init__(self, tape, pin, circ_dict):
+        super().__init__(tape, pin, circ_dict)
+        named_nodes = {}
+        for i, key in enumerate(self.pin.keys()):
+            named_nodes[key] = i
+        edge_indexes = []
+        for i, paper in enumerate(self.tape):
+            kor, eng, tags, func, pose = paper
+            if len(tags) > 2:
+                raise "here!"
+            edge_indexes.append([named_nodes[tags[0]], named_nodes[tags[1]]])
+            edge_indexes.append([named_nodes[tags[1]], named_nodes[tags[0]]])
+
+        self.named_nodes = named_nodes
+        self.edge_indexes = torch.tensor(edge_indexes, dtype=torch.long).t()
+
+        self.measure_code = {'width': -2, 'height': -1, 'depth': 0, 'length': 1, 'circ': 2,
+                             'length-h': 1, 'length-v': 1, 'circ-h': 2, 'circ-v': 2}
+        self.axis_code = {'width': -1, 'height': 0, 'depth': 1, 'length': 2, 'circ': 2,
+                          'length-h': -1, 'length-v': 0, 'circ-h': -1, 'circ-v': 0}
+
+    def get_measured_graph(self, gender, fast=False, visualize=False):
+        batch_size = len(gender)
+        measure = self.order(gender=gender, fast=fast, visualize=visualize)
+        named_poses = {}
+        for i, key in enumerate(self.model.keys()):
+            named_poses[key] = i
+
+        graphs = []
+        for i in range(batch_size):
+            edge_features = torch.zeros(len(self.tape) * 2, len(self.model) + 2)
+            node_features = torch.zeros(len(self.pin), len(self.model) * 3)
+            # node
+            for key, vertices in self.model.items():
+                v = vertices[i]
+                for node_name, index in self.pin.items():
+                    x, y, z = v[index]
+                    pivot = named_poses[key] * 3
+                    node_features[self.named_nodes[node_name], pivot] = x
+                    node_features[self.named_nodes[node_name], pivot + 1] = y
+                    node_features[self.named_nodes[node_name], pivot + 2] = z
+
+                # edge feature
+                for pivot, paper in enumerate(self.tape):
+                    kor, eng, tags, func, pose = paper
+                    edge_features[pivot * 2, named_poses[key]] = measure[i, pivot]
+                    edge_features[pivot * 2, -1] = self.axis_code[func]
+                    edge_features[pivot * 2, -2] = self.measure_code[func]
+
+                    edge_features[pivot * 2 + 1, named_poses[key]] = measure[i, pivot]
+                    edge_features[pivot * 2 + 1, -1] = self.axis_code[func]
+                    edge_features[pivot * 2 + 1, -2] = self.measure_code[func]
+            graph = Data(x=node_features,
+                         edge_index=self.edge_indexes.contiguous(),
+                         edge_attr=edge_features)
+            if visualize:
+                import networkx as nx
+                import matplotlib.pyplot as plt
+
+                # NetworkX 그래프로 변환
+                G = nx.Graph()
+                G.add_nodes_from(range(len(self.named_nodes)))
+                G.add_edges_from(self.edge_indexes.t().tolist())
+
+                # 노드 및 엣지 특성 추가
+                for k in range(len(self.named_nodes)):
+                    G.nodes[k]['features'] = node_features[k].numpy()
+
+                for k, (src, tgt) in enumerate(self.edge_indexes.t().tolist()):
+                    G[src][tgt]['features'] = edge_features[k].numpy()
+
+                # 그래프 시각화
+                pos = nx.spring_layout(G)
+                nx.draw(G, pos, with_labels=True, font_weight='bold', node_size=200, node_color='skyblue',
+                        font_color='black', font_size=8)
+
+                # 노드 및 엣지 특성 표시
+                node_labels = nx.get_node_attributes(G, 'features')
+                edge_labels = nx.get_edge_attributes(G, 'features')
+                nx.draw_networkx_labels(G, pos, labels=node_labels)
+                nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+
+                plt.show()
+            graphs.append(graph)
+        batch = Batch.from_data_list(graphs)
+        return measure, batch
