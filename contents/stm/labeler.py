@@ -8,7 +8,7 @@ import torch
 from contents.stm.preprocess.convention import get_interactions
 from contents.stm.model import SMPL
 from contents.stm.poses.pose import get_curve, get_t, get_sitdown, get_standing, get_hands_on
-from contents.stm.taylor import Taylor
+from contents.stm.tailor import Tailor
 from labeler.torchbase import Base
 
 
@@ -28,7 +28,7 @@ class SMPLLabeler(Base):
             sitting = json.load(f)
         with open(os.path.join(circ_root, 'circumference.json'), 'r', encoding='UTF-8-sig') as f:
             circ_dict = json.load(f)
-        self.taylor = Taylor(tape=get_interactions(), pin=(standing, sitting), circ_dict=circ_dict)
+        self.taylor = Tailor(tape=get_interactions(), pin=(standing, sitting), circ_dict=circ_dict)
 
     def __call__(self, **kwargs):
         shape = kwargs['value']

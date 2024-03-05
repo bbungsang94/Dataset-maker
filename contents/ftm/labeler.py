@@ -7,7 +7,7 @@ import torch
 
 from contents.ftm.model import FLAMESet
 from contents.ftm.preprocess.convention import get_interactions
-from contents.stm.taylor import GraphTaylor
+from contents.stm.tailor import GraphTailor
 from labeler.torchbase import Base
 from utilities.convention import ModelPath
 
@@ -28,7 +28,7 @@ class GraphLabeler(Base):
             circ_dict = json.load(f)
 
         self.model = FLAMESet(generic_path, gender=True)
-        self.taylor = GraphTaylor(tape=get_interactions(), pin=[facial], circ_dict=circ_dict)
+        self.tailor = GraphTailor(tape=get_interactions(), pin=[facial], circ_dict=circ_dict)
 
     def __call__(self, **kwargs):
         shape = kwargs['value'].type(torch.FloatTensor)
@@ -40,8 +40,8 @@ class GraphLabeler(Base):
             v, _ = self.model(genders=[gender], batch_size=1, shape=shape, expression=value)
             models[key] = copy.deepcopy(v)
 
-        self.taylor.update(model_dict=models)
-        measure, graph = self.taylor.get_measured_graph(gender=[gender], fast=False, visualize=False)
+        self.tailor.update(model_dict=models)
+        measure, graph = self.tailor.get_measured_graph(gender=[gender], fast=False, visualize=False)
         result = {
             'input': {
                 'gender': gender,
