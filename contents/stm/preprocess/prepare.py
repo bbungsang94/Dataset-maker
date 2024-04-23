@@ -6,6 +6,7 @@ import numpy as np
 import open3d as o3d
 import torch
 
+from contents.stm.postprocess.merge_head import get_orient_coordinates
 from contents.stm.preprocess.convention import get_coordinates, get_names, get_circ_coordinates
 from contents.stm.model import SMPL
 from contents.stm.poses.pose import get_t, get_hands_on, get_sitdown, get_curve, get_standing
@@ -25,6 +26,26 @@ def check_error(vertices, coordinates):
         print(result.min())
 
 
+def make_origin(gender: str):
+    root = r"D:\Creadto\Utilities\Dataset-maker\contents\external\smpl"
+    model = SMPL(os.path.join(root, "SMPLX_" + gender.upper() + ".pkl"))
+    shape = torch.zeros(1, 400, dtype=torch.float64)
+    poses = {
+        't': get_t(1),
+        'hands-on': get_hands_on(1),
+        'standing': get_standing(1),
+        'curve': get_curve(1),
+        'sitting': get_sitdown(1)
+    }
+    offset = torch.zeros(1, 3, dtype=torch.float64)
+    for key, pose in poses.items():
+        v, _ = model(shape, pose, offset)
+
+        mesh = o3d.geometry.TriangleMesh()
+        mesh.vertices = o3d.utility.Vector3dVector(v[0])
+        mesh.triangles = o3d.utility.Vector3iVector(model.faces)
+        o3d.io.write_triangle_mesh(key + '-origin.obj', mesh)
+    
 def make_obj_mapper():
     root = r"D:\Creadto\Utilities\Dataset-maker\contents\external\smpl"
     male = SMPL(os.path.join(root, "SMPLX_MALE.pkl"))
@@ -99,7 +120,7 @@ def make_index_list(vertices, coordinates, name_dict: dict, error_display=False,
     return name_dict
 
 
-def make_circ_json(vertices, error_display=False, verbose=False):
+def make_circ_json(vertices, target_points, error_display=False, verbose=False):
     root = r"D:\Creadto\Utilities\Dataset-maker\contents\external\smpl"
     female = SMPL(os.path.join(root, "SMPLX_FEMALE.pkl"))
     male = SMPL(os.path.join(root, "SMPLX_MALE.pkl"))
@@ -107,9 +128,8 @@ def make_circ_json(vertices, error_display=False, verbose=False):
     poses = [get_t, get_hands_on, get_sitdown, get_curve, get_standing]
     with open(file='../data/mapper.pickle', mode='rb') as f:
         mapper = pickle.load(f)
-    circ_dict = get_circ_coordinates()
     json_dict = dict()
-    for key, value in circ_dict.items():
+    for key, value in target_points.items():
         json_dict[key] = []
         print(key)
         for xyz in value:
@@ -154,11 +174,13 @@ def make_circ_json(vertices, error_display=False, verbose=False):
 
 
 if __name__ == "__main__":
+    # make_origin("female")
     mesh = o3d.io.read_triangle_mesh(os.path.join(r"../poses/sizekorea", "origin-male.obj"))
     # coordi = o3d.geometry.TriangleMesh.create_coordinate_frame()
     # o3d.visualization.draw_geometries([mesh, coordi])
-    #make_obj_mapper()
+    # #make_obj_mapper()
     standing_coordinates, sitting_coordinates = get_coordinates()
+    # neck = get_orient_coordinates()
     standing_names, sitting_names = get_names()
 
     check_error(np.asarray(mesh.vertices), standing_coordinates)
@@ -166,7 +188,8 @@ if __name__ == "__main__":
 
     standing_names = make_index_list(np.asarray(mesh.vertices), standing_coordinates, standing_names, True, False)
     sitting_names = make_index_list(np.asarray(mesh.vertices), sitting_coordinates, sitting_names, True, False)
-    circ_dict = make_circ_json(np.asarray(mesh.vertices), True, True)
+    circ_result = make_circ_json(np.asarray(mesh.vertices), get_circ_coordinates(), True, False)
+    # neck_oriented = make_circ_json(np.asarray(mesh.vertices), get_orient_coordinates(), True, False)
     import json
 
     with open('standing.json', 'w', encoding='UTF-8-sig') as f:
@@ -174,4 +197,6 @@ if __name__ == "__main__":
     with open('sitting.json', 'w', encoding='UTF-8-sig') as f:
         json.dump(sitting_names, f, indent=4, ensure_ascii=False)
     with open('circumference.json', 'w', encoding='UTF-8-sig') as f:
-        json.dump(circ_dict, f, indent=4, ensure_ascii=False)
+        json.dump(circ_result, f, indent=4, ensure_ascii=False)
+    # with open('neck_oriented.json', 'w', encoding='UTF-8-sig') as f:
+    #     json.dump(neck_oriented, f, indent=4, ensure_ascii=False)

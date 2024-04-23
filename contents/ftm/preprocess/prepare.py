@@ -8,6 +8,7 @@ import open3d as o3d
 
 from contents.ftm.model import FLAMESet
 from contents.ftm.preprocess.convention import get_coordinates, get_names, get_circ_coordinates
+from contents.stm.postprocess.merge_head import get_orient_coordinates
 from utilities.convention import ModelPath
 
 
@@ -117,13 +118,12 @@ def make_index_list(vertices, coordinates, name_dict: dict, error_display=False,
     return name_dict
 
 
-def make_circ_json(vertices, error_display=False, verbose=False):
+def make_circ_json(vertices, target_points, error_display=False, verbose=False):
     flame = get_flame()
     with open(file='./mapper.pickle', mode='rb') as f:
         mapper = pickle.load(f)
-    circ_dict = get_circ_coordinates()
     json_dict = dict()
-    for key, value in circ_dict.items():
+    for key, value in target_points.items():
         json_dict[key] = []
         print(key)
         for xyz in value:
@@ -177,13 +177,16 @@ def run():
     check_error(np.asarray(mesh.vertices), coordinates)
 
     result = make_index_list(np.asarray(mesh.vertices), coordinates, names, True, False)
-    circ_dict = make_circ_json(np.asarray(mesh.vertices), True, False)
+    circ_dict = make_circ_json(np.asarray(mesh.vertices), get_circ_coordinates(), True, False)
+    neck_oriented = make_circ_json(np.asarray(mesh.vertices), get_orient_coordinates(), True, False)
     import json
 
     with open('facial.json', 'w', encoding='UTF-8-sig') as f:
         json.dump(result, f, indent=4, ensure_ascii=False)
     with open('circumference-facial.json', 'w', encoding='UTF-8-sig') as f:
         json.dump(circ_dict, f, indent=4, ensure_ascii=False)
+    with open('neck_oriented-facial.json', 'w', encoding='UTF-8-sig') as f:
+        json.dump(neck_oriented, f, indent=4, ensure_ascii=False)
 
 
 if __name__ == "__main__":
